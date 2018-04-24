@@ -202,10 +202,6 @@ def load_augmented_data(path, qualifier):
     augmented_data = list()
     augmented_label = list()
     
-    def load_augmented_data(path, qualifier):
-    augmented_data = list()
-    augmented_label = list()
-    
     for filename in glob.glob(path + "data/" + qualifier + "*.png"):
         im=np.array(Image.open(filename))
         im = im/255
@@ -213,8 +209,6 @@ def load_augmented_data(path, qualifier):
         
         label = np.loadtxt(path + "label/" + basename(filename).split(".")[0] + ".txt")
         augmented_label.append(label)
-        
-    return np.array(augmented_data), np.array(augmented_label)
         
     return np.array(augmented_data), np.array(augmented_label)
 
