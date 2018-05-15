@@ -4,7 +4,7 @@ from matplotlib.patches import Circle
 
 from scipy.ndimage.interpolation import zoom
 from PIL import Image
-from scipy.misc import imsave
+#from scipy.misc import imsave
 import glob
 from os.path import basename
 
@@ -46,11 +46,19 @@ def load_data(path, labels):
         data_label.append([x,y])
         
 
-    return np.asarray(data)/255, np.asarray(data_label)
+    return np.asarray(data)/255.0, np.asarray(data_label)
+
+def load_images(path):
+    image_list = []
+    for filename in glob.glob(path + '/*.jpg'):
+        im=Image.open(filename)
+        im = np.asarray(im)/255.0
+        image_list.append(im)
+    return image_list
 
 
 ############################################################################
-######################Augmentation##########################################
+###################### AUGMENTATION ########################################
 ############################################################################
 
 
@@ -195,19 +203,19 @@ def augment_all(images, labels, n_translations=10, n_scales=1):
 
 def save_augmented_data(path, augmented_data, augmented_label, qualifier):
     for i in range(augmented_data.shape[0]):
-        imsave(path + "data/" + qualifier + "_{0}.png".format(i), augmented_train_data[i])
-        np.savetxt(path + "label/" + qualifier + "_{0}.txt".format(i), augmented_train_label[i])
+        imsave(path + "data_" + qualifier + "_{0}.png".format(i), augmented_data[i])
+        np.savetxt(path + "label_data_" + qualifier + "_{0}.txt".format(i), augmented_data[i])
         
 def load_augmented_data(path, qualifier):
     augmented_data = list()
     augmented_label = list()
     
-    for filename in glob.glob(path + "data/" + qualifier + "*.png"):
+    for filename in glob.glob(path + "data_" + qualifier + "*.png"):
         im=np.array(Image.open(filename))
-        im = im/255
+        im = im/255.0
         augmented_data.append(im)
         
-        label = np.loadtxt(path + "label/" + basename(filename).split(".")[0] + ".txt")
+        label = np.loadtxt(path + "label_" + basename(filename).split(".")[0] + ".txt")
         augmented_label.append(label)
         
     return np.array(augmented_data), np.array(augmented_label)
@@ -217,25 +225,18 @@ def get_generator_dicts(path):
     partition = {"train": [], "val": [], "test": []}
     labels = {}
     
-    for filename in glob.glob(path + "data/train_*.png"):
+    for filename in glob.glob(path + "data_train_*.png"):
         partition["train"].append(basename(filename).split(".")[0])
         
     for ID in partition["train"]:
-        labels[ID] = np.loadtxt(path + "label/" + ID + ".txt")
+        labels[ID] = np.loadtxt(path + "label_" + ID + ".txt")
         
         
-    for filename in glob.glob(path + "data/val*.png"):
+    for filename in glob.glob(path + "data_val*.png"):
         partition["val"].append(basename(filename).split(".")[0])
         
     for ID in partition["val"]:
-        labels[ID] = np.loadtxt(path + "label/" + ID + ".txt")
-        
-        
-    for filename in glob.glob(path + "data/test*.png"):
-        partition["test"].append(basename(filename).split(".")[0])
-        
-    for ID in partition["test"]:
-        labels[ID] = np.loadtxt(path + "label/" + ID + ".txt")
+        labels[ID] = np.loadtxt(path + "label_" + ID + ".txt")
         
     return partition, labels
 
@@ -243,7 +244,7 @@ def get_generator_dicts(path):
 
 
 ###################################################################################
-#####################################Fully Convolutional###########################
+#####################################FULLY CONVOLUTIONAL###########################
 ###################################################################################
 
 def transform_label(x,y,n_rows,n_cols, width = 0.01):
